@@ -203,28 +203,27 @@ mv /teamspace/studios/this_studio/Abliterated-27B-Mixed-*.gguf /teamspace/studio
 ```bash
 cat << 'EOF' > /teamspace/studios/this_studio/hf_upload/README.md
 ---
-license: other
+license: apache-2.0
 language:
-- en
+  - en
+  - zh
+  - ko
 tags:
-- gguf
-- mamba
-- uncensored
-base_model: HauhauCS/Qwen3.5-27B-Uncensored-HauhauCS-Aggressive
+  - gguf
+  - mamba
+  - uncensored
+  - reasoning
+  - chain-of-thought
+  - qwen3.5
+base_model: Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-v2
+pipeline_tag: image-text-to-text
+datasets:
+  - nohurry/Opus-4.6-Reasoning-3000x-filtered
+  - Jackrong/Qwen3.5-reasoning-700x
+  - Roman1111111/claude-opus-4.6-10000x
 ---
-# Qwen 3.5 27B Uncensored (HauhauCS-Aggressive) - Mixed Precision GGUFs
-
-## 🔥 Highlights
-- **Base Model:** Qwen3.5-27B-Uncensored (Aggressive Abliteration)
-- **Abliteration:** Zero refusals while maintaining reasoning.
-- **EvoPress Strategy:** Sensitive SSM (Mamba) layers, Normalization layers, and Convolutional weights are preserved at FP32/FP16.
-
-| File Name | Target BPW | Optimization |
-| :--- | :---: | :--- |
-| **Mixed-3.5bpw.gguf** | 3.5 | Q3_K Base + F32 Mamba/Norms |
-| **Mixed-4.25bpw.gguf** | 4.25 | Q4_K Base + F32 Mamba/Norms |
-| **Mixed-5.0bpw.gguf** | 5.0 | Q5_K Base + F32 Mamba/Norms |
-| **27B-Q[2-6]_K.gguf** | Various | Standard K-Quants |
+# Title
+Insert your content/description here
 EOF
 ```
 
@@ -235,10 +234,13 @@ huggingface-cli login
 # 1. Create the Repo (if not exists)
 huggingface-cli repo create [username]/[repo-name]
 
-# 2. Upload from the staging directory
+# 2. Upload sequentially to prevent CPU Instance Out-Of-Memory (OOM) crashes
 cd /teamspace/studios/this_studio/hf_upload
-huggingface-cli upload [username]/[repo-name] . . \
-    --commit-message "Initial release: HauhauCS Aggressive Uncensored (EvoPress GGUFs)"
+huggingface-cli upload [username]/[repo-name] README.md README.md --commit-message "Initial Model Card"
+
+for file in *.gguf; do
+    huggingface-cli upload [username]/[repo-name] "$file" "$file" --commit-message "Upload $file"
+done
 ```
 
 ### 7.3 Post-Upload Maintenance & Space Recovery
